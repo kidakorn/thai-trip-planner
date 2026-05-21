@@ -1,0 +1,187 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: false;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap");
+
+@theme {
+  --color-primary-red: #d90429;
+  --color-secondary-red: #ef233c;
+  --color-dark-bg: #2b2d42;
+  --color-text-main: #2b2d42;
+  --color-surface: #1a1b2e;
+  --color-surface-2: #23243a;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-muted: #8d99ae;
+
+  --font-sans: "Inter", "Sarabun", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1rem;
+  --radius-btn: 0.75rem;
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 24px rgba(217, 4, 41, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: #edf2f4;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* =====================
+   Custom Scrollbar
+   ===================== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary-red);
+  border-radius: 999px;
+}
+
+/* =====================
+   Focus Ring
+   ===================== */
+:focus-visible {
+  outline: 2px solid var(--color-primary-red);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* =====================
+   Utility Classes
+   ===================== */
+.card-glass {
+  background: rgba(35, 36, 58, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.btn-primary-custom {
+  background: linear-gradient(135deg, var(--color-primary-red), var(--color-secondary-red));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  cursor: pointer;
+}
+
+.btn-primary-custom:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-primary-custom:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-primary-custom:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input-custom {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  color: #edf2f4;
+  transition: border-color 0.2s ease;
+}
+
+.input-custom:focus {
+  outline: none;
+  border-color: var(--color-primary-red);
+}
+
+.input-custom::placeholder {
+  color: var(--color-muted);
+}
+
+/* =====================
+   Category Badges
+   ===================== */
+.badge-food { background: #b45309; color: #fef3c7; }
+.badge-drink { background: #1d4ed8; color: #dbeafe; }
+.badge-hotel { background: #6d28d9; color: #ede9fe; }
+.badge-activity { background: #065f46; color: #d1fae5; }
+.badge-attraction { background: #b45309; color: #fef3c7; }
+
+/* =====================
+   Gradient Text
+   ===================== */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary-red), #ff6b6b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* =====================
+   Animated Underline Link
+   ===================== */
+.link-animated {
+  position: relative;
+  color: #edf2f4;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.link-animated::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-primary-red);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.link-animated:hover::after {
+  width: 100%;
+}
+
+.link-animated:hover {
+  color: var(--color-secondary-red);
+}
+
+/* =====================
+   Section spacing
+   ===================== */
+.section-spacing {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+/* =====================
+   Leaflet overrides — ensure map renders above nothing
+   ===================== */
+.leaflet-container {
+  border-radius: var(--radius-card);
+  z-index: 0;
+}
