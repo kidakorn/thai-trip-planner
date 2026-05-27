@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { TripRequestSchema } from "@/src/lib/types";
-import { generateTripPlan } from "@/src/lib/gemini";
+import { generateTripPlan, matchProvince } from "@/src/lib/gemini";
 import { createServerClient } from "@/src/lib/supabase";
 
 export async function POST(req: Request) {
@@ -17,6 +17,12 @@ export async function POST(req: Request) {
     }
 
     const request = parsed.data;
+    
+    // AI Matcher: If province is not provided, let AI decide
+    if (!request.province) {
+      request.province = await matchProvince(request);
+    }
+
     const db = createServerClient();
 
     // Fetch places from the same province to feed the AI context

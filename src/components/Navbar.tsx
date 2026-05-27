@@ -1,232 +1,134 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Map, Home, MapPin, Menu, X } from "lucide-react";
-import { useState } from "react";
-import { useLanguage } from "@/src/lib/useLanguage";
+import Image from "next/image";
+import { Menu, X, Globe, Home, MapPin, Compass } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useTranslations, useLocale } from 'next-intl';
+import { Link, usePathname, useRouter } from "@/src/i18n/routing";
 
 export default function Navbar() {
-  const { t, lang, setLang } = useLanguage();
+  const t = useTranslations('nav');
+  const locale = useLocale();
+  const router = useRouter();
   const pathname = usePathname();
+  
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const navLinks = [
-    { href: "/", label: t("nav_home"), icon: Home },
-    { href: "/plan", label: t("nav_plan"), icon: Map },
-    { href: "/places", label: t("nav_places"), icon: MapPin },
+    { href: "/", label: t("home"), icon: Home },
+    { href: "/plan", label: t("plan"), icon: MapPin },
+    { href: "/places", label: t("places"), icon: Compass },
   ];
 
-  const toggleLang = () => setLang(lang === "th" ? "en" : "th");
+  const toggleLang = () => {
+    const nextLocale = locale === 'en' ? 'th' : 'en';
+    router.replace(pathname, { locale: nextLocale });
+  };
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <header
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-        background: "rgba(26, 27, 46, 0.85)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "80rem",
-          margin: "0 auto",
-          padding: "0 1.5rem",
-          height: "4rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
+    <>
+      <header
+        className={`fixed left-0 right-0 z-50 transition-all duration-300 px-4 ${
+          scrolled ? "top-4" : "top-6"
+        }`}
       >
-        {/* Logo */}
-        <Link
-          href="/"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            textDecoration: "none",
-          }}
+        <div
+          className={`max-w-5xl mx-auto h-18 flex items-center justify-between rounded-full px-3 md:px-6 border border-red-100 transition-shadow duration-300 ${
+            scrolled 
+              ? "bg-white/90 backdrop-blur-xl shadow-md shadow-red-900/5" 
+              : "bg-white/70 backdrop-blur-md shadow-sm shadow-red-900/5"
+          }`}
         >
-          <div
-            style={{
-              width: "2rem",
-              height: "2rem",
-              borderRadius: "0.5rem",
-              background: "linear-gradient(135deg, #d90429, #ef233c)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Map size={16} color="#fff" aria-hidden="true" />
-          </div>
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: "1.1rem",
-              background: "linear-gradient(135deg, #d90429, #ff6b6b)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Thai Trip Planner
-          </span>
-        </Link>
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3 no-underline">
+            <div className="w-10 h-10 rounded-full bg-red-50 border border-red-100 flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+              <Image src="/logo.png" alt="ThaiTrip" width={40} height={40} className="object-cover" />
+            </div>
+            <span className="font-sans text-2xl text-ink font-bold tracking-tight hidden sm:block">
+              Thai<span className="text-primary-red">Trip</span>
+            </span>
+          </Link>
 
-        {/* Desktop Nav */}
-        <nav
-          aria-label="Main navigation"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.25rem",
-          }}
-          className="hidden-mobile"
-        >
-          {navLinks.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.4rem",
-                padding: "0.4rem 0.85rem",
-                borderRadius: "0.5rem",
-                textDecoration: "none",
-                fontSize: "0.9rem",
-                fontWeight: 500,
-                transition: "background 0.2s, color 0.2s",
-                color: isActive(href) ? "#d90429" : "#8d99ae",
-                background: isActive(href)
-                  ? "rgba(217, 4, 41, 0.1)"
-                  : "transparent",
-              }}
-              aria-current={isActive(href) ? "page" : undefined}
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                aria-current={isActive(href) ? "page" : undefined}
+                className={`px-5 py-2.5 rounded-full text-sm font-sans font-bold transition-all ${
+                  isActive(href)
+                    ? "bg-primary-red/10 text-primary-red"
+                    : "text-ink-secondary hover:text-ink hover:bg-red-50"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+
+            <div className="w-[1px] h-6 bg-red-100 mx-3" />
+
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-ink-secondary text-sm font-bold hover:text-ink hover:bg-red-50 transition-colors"
             >
-              <Icon size={15} aria-hidden="true" />
-              {label}
+              <Globe size={16} />
+              {locale.toUpperCase()}
+            </button>
+
+            <Link href="/plan" className="btn btn-primary bg-primary-red hover:bg-secondary-red text-white border-none rounded-full ml-2 px-6 py-2.5 min-h-0 h-auto text-sm font-bold shadow-lg hover:shadow-primary-red/30 transition-all hover:-translate-y-0.5">
+              {t("plan")}
             </Link>
-          ))}
+          </nav>
 
-          {/* Language Toggle */}
+          {/* Mobile hamburger */}
           <button
-            onClick={toggleLang}
-            aria-label={`Switch to ${lang === "th" ? "English" : "Thai"}`}
-            style={{
-              marginLeft: "0.5rem",
-              padding: "0.35rem 0.75rem",
-              borderRadius: "0.5rem",
-              border: "1px solid rgba(217, 4, 41, 0.4)",
-              background: "transparent",
-              color: "#d90429",
-              fontWeight: 600,
-              fontSize: "0.8rem",
-              cursor: "pointer",
-              transition: "background 0.2s",
-            }}
+            className="md:hidden w-11 h-11 rounded-full bg-red-50 flex items-center justify-center text-ink transition-colors hover:bg-red-100 border border-red-100"
+            onClick={() => setMobileOpen((v) => !v)}
           >
-            {t("nav_lang_toggle")}
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-        </nav>
+        </div>
+      </header>
 
-        {/* Mobile hamburger */}
-        <button
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          aria-expanded={mobileOpen}
-          aria-controls="mobile-menu"
-          onClick={() => setMobileOpen((prev) => !prev)}
-          style={{
-            display: "none",
-            background: "transparent",
-            border: "none",
-            color: "#edf2f4",
-            cursor: "pointer",
-            padding: "0.25rem",
-          }}
-          className="show-mobile"
-        >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
+      {/* Mobile menu */}
       {mobileOpen && (
-        <nav
-          id="mobile-menu"
-          aria-label="Mobile navigation"
-          style={{
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-            padding: "1rem 1.5rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-          }}
-        >
+        <div className="fixed inset-0 bg-white/98 z-40 px-6 pt-32 pb-6 flex flex-col gap-3">
           {navLinks.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
               onClick={() => setMobileOpen(false)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.6rem",
-                padding: "0.65rem 0.75rem",
-                borderRadius: "0.5rem",
-                textDecoration: "none",
-                fontWeight: 500,
-                color: isActive(href) ? "#d90429" : "#edf2f4",
-                background: isActive(href)
-                  ? "rgba(217, 4, 41, 0.1)"
-                  : "transparent",
-              }}
+              className={`flex items-center gap-4 p-5 rounded-2xl text-xl font-serif font-bold ${
+                isActive(href)
+                  ? "bg-primary-red/10 text-primary-red"
+                  : "bg-red-50 text-ink"
+              }`}
             >
-              <Icon size={17} aria-hidden="true" />
+              <Icon size={24} className={isActive(href) ? "text-primary-red" : "text-ink-muted"} />
               {label}
             </Link>
           ))}
-          <button
-            onClick={() => {
-              toggleLang();
-              setMobileOpen(false);
-            }}
-            style={{
-              alignSelf: "flex-start",
-              marginTop: "0.25rem",
-              padding: "0.4rem 1rem",
-              borderRadius: "0.5rem",
-              border: "1px solid rgba(217, 4, 41, 0.4)",
-              background: "transparent",
-              color: "#d90429",
-              fontWeight: 600,
-              fontSize: "0.85rem",
-              cursor: "pointer",
-            }}
-          >
-            {t("nav_lang_toggle")}
-          </button>
-        </nav>
-      )}
 
-      <style>{`
-        @media (min-width: 768px) {
-          .hidden-mobile { display: flex !important; }
-          .show-mobile { display: none !important; }
-        }
-        @media (max-width: 767px) {
-          .hidden-mobile { display: none !important; }
-          .show-mobile { display: flex !important; }
-        }
-      `}</style>
-    </header>
+          <button
+            onClick={() => { toggleLang(); setMobileOpen(false); }}
+            className="flex items-center gap-4 p-5 rounded-2xl bg-red-50 text-ink text-xl font-serif font-bold text-left mt-2 border border-red-100"
+          >
+            <Globe size={24} className="text-ink-muted" />
+            {locale === "en" ? "Switch to Thai" : "Switch to English"}
+          </button>
+        </div>
+      )}
+    </>
   );
 }

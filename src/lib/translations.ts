@@ -24,6 +24,8 @@ export const translations = {
     // Plan form
     plan_page_title: "วางแผนทริป",
     plan_page_subtitle: "กรอกข้อมูลเพื่อให้ AI สร้างแผนทริปส่วนตัวสำหรับคุณ",
+    mode_know: "รู้แล้วว่าจะไปไหน",
+    mode_help: "✨ ให้ AI ช่วยเลือก",
     form_province_label: "จังหวัดที่ต้องการไป",
     form_province_placeholder: "เลือกจังหวัด",
     form_days_label: "จำนวนวัน",
@@ -129,6 +131,8 @@ export const translations = {
     // Plan form
     plan_page_title: "Plan a Trip",
     plan_page_subtitle: "Fill in the details so AI can build your perfect itinerary.",
+    mode_know: "I know where I'm going",
+    mode_help: "✨ Help me choose",
     form_province_label: "Destination Province",
     form_province_placeholder: "Select a province",
     form_days_label: "Number of Days",

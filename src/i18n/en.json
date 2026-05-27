@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "home": "Home",
+    "plan": "Plan a Trip",
+    "places": "Places"
+  },
+  "hero": {
+    "badge": "AI-Powered Thailand Travel",
+    "headline": "Your perfect Thai vacation, planned in seconds.",
+    "subheadline": "Tell our AI your destination, budget, and travel style. Get a complete day-by-day plan with a live map — 100% free.",
+    "cta": "Start Planning Free",
+    "browse": "Browse Places"
+  },
+  "plan": {
+    "province": "Where do you want to go?",
+    "days": "How many days?",
+    "budget": "Total budget",
+    "travelers": "How many people?",
+    "style": "What's your vibe?",
+    "preferences": "Anything else? (optional)",
+    "submit": "Plan My Trip →",
+    "loading": "AI is planning your trip...",
+    "mode_know": "I know where I'm going",
+    "mode_help": "✨ Help me choose"
+  },
+  "home": {
+    "how_it_works_title": "How it",
+    "how_it_works_title_highlight": "works",
+    "how_it_works_subtitle": "Three simple steps to your perfect tropical getaway.",
+    "step1_title": "Fill in Your Preferences",
+    "step1_desc": "Choose your province, travel dates, budget, and style — culture, nature, food, or nightlife.",
+    "step2_title": "AI Builds Your Itinerary",
+    "step2_desc": "Our AI analyzes thousands of options and crafts a day-by-day plan made just for you.",
+    "step3_title": "Explore on a Live Map",
+    "step3_desc": "Your entire itinerary appears on an interactive map with booking links for every activity.",
+    "dest_title": "Popular",
+    "dest_title_highlight": "Destinations",
+    "dest_subtitle": "Discover the most stunning regions in Thailand, handpicked for your next adventure.",
+    "dest_see_all": "See all places",
+    "cta_title": "Ready for your",
+    "cta_title2": "next adventure?",
+    "cta_button": "Start Planning Now",
+    "vibe_chiang_mai": "Golden Temples",
+    "vibe_phuket": "Turquoise Waters",
+    "vibe_bangkok": "Vibrant City",
+    "vibe_krabi": "Sunny Beaches"
+  },
+  "places": {
+    "hero_badge": "Discover Thailand",
+    "hero_title": "Explore",
+    "hero_title_highlight": "Places",
+    "hero_desc": "Handpicked restaurants, hotels, activities, and attractions for your perfect itinerary."
+  }
+}

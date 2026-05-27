@@ -22,7 +22,7 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [lang, setLang] = useState<Lang>("th");
+  const [lang, setLang] = useState<Lang>("en");
 
   const t = useCallback(
     (key: TranslationKey): string => {

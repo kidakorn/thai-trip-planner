@@ -12,11 +12,11 @@ const LeafletMap = dynamic(() => import("@/src/components/LeafletMapInner"), {
         width: "100%",
         height: "400px",
         borderRadius: "1rem",
-        background: "rgba(255,255,255,0.04)",
+        background: "var(--bg-card)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#8d99ae",
+        color: "var(--text-muted)",
         fontSize: "0.9rem",
       }}
     >

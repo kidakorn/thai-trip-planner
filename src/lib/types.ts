@@ -89,7 +89,7 @@ export interface TripPlan {
 // =====================
 
 export interface TripRequest {
-  province: string;
+  province?: string;
   days: number;
   budget: number;
   travelers: number;
@@ -102,7 +102,7 @@ export interface TripRequest {
 // =====================
 
 export const TripRequestSchema = z.object({
-  province: z.string().min(1, "Province is required"),
+  province: z.string().optional(),
   days: z.number().int().min(1).max(14),
   budget: z.number().int().min(500),
   travelers: z.number().int().min(1).max(20),

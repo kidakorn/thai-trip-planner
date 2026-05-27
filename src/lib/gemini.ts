@@ -101,3 +101,27 @@ Required JSON structure:
     throw new Error("Failed to generate trip plan. Please try again.");
   }
 }
+
+export async function matchProvince(request: TripRequest): Promise<string> {
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  const prompt = `You are a Thai travel expert. The user wants to visit Thailand but doesn't know which province to choose.
+Match their preferences to EXACTLY ONE of the 77 provinces of Thailand.
+
+User Requirements:
+- Duration: ${request.days} days
+- Budget: ${request.budget} THB for ${request.travelers} people
+- Trip Style: ${request.style.join(", ")}
+- Extra Preferences: ${request.preferences || "None"}
+
+Respond ONLY with the official Thai name of the best matching province (e.g., "เชียงใหม่" or "ภูเก็ต"). Do not include any other text, explanation, or punctuation.`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+    return text;
+  } catch (error) {
+    console.error("Error matching province:", error);
+    return "กรุงเทพมหานคร"; // Default fallback to Bangkok
+  }
+}

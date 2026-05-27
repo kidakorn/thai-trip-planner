@@ -1,9 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Utensils, Hotel, Zap, Binoculars } from "lucide-react";
+import { MapPin, Utensils, Hotel, Zap, Binoculars, ArrowRight } from "lucide-react";
 import { Category, Place } from "@/src/lib/types";
 
-// Map each category to a fallback lucide icon
 const CATEGORY_ICONS: Record<Category, React.ElementType> = {
   food: Utensils,
   drink: Zap,
@@ -12,13 +11,12 @@ const CATEGORY_ICONS: Record<Category, React.ElementType> = {
   attraction: Binoculars,
 };
 
-// Map each category to a CSS class defined in globals.css
 const CATEGORY_BADGE_CLASS: Record<Category, string> = {
-  food: "badge-food",
-  drink: "badge-drink",
-  hotel: "badge-hotel",
-  activity: "badge-activity",
-  attraction: "badge-attraction",
+  food: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+  drink: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+  hotel: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  activity: "bg-green-500/10 text-green-500 border-green-500/20",
+  attraction: "bg-primary-red/10 text-primary-red border-primary-red/20",
 };
 
 interface PlaceCardProps {
@@ -31,143 +29,73 @@ export default function PlaceCard({ place, categoryLabel }: PlaceCardProps) {
   const hasImage = place.images.length > 0 && place.images[0];
 
   return (
-    <article
-      className="card-glass"
-      style={{
-        overflow: "hidden",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Image or fallback */}
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "180px",
-          background: "rgba(255,255,255,0.04)",
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-        }}
-      >
+    <article className="group bg-white rounded-3xl overflow-hidden border border-red-100 hover:border-red-300 shadow-md hover:shadow-xl hover:shadow-red-900/10 transition-all duration-300 h-full flex flex-col">
+      {/* Image */}
+      <div className="relative w-full h-[200px] bg-dark-bg flex items-center justify-center overflow-hidden shrink-0">
         {hasImage ? (
           <Image
             src={place.images[0]}
             alt={place.name_en ?? place.name}
             fill
-            style={{ objectFit: "cover" }}
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
-          <FallbackIcon size={48} color="rgba(255,255,255,0.15)" aria-hidden="true" />
+          <FallbackIcon size={40} className="text-ink-muted" aria-hidden="true" />
         )}
+        
+        {/* Gradient Overlay for badges */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent pointer-events-none" />
 
-        {/* Category badge overlaid on image */}
+        {/* Category badge */}
         <span
-          className={CATEGORY_BADGE_CLASS[place.category]}
-          style={{
-            position: "absolute",
-            top: "0.6rem",
-            left: "0.6rem",
-            padding: "0.2rem 0.6rem",
-            borderRadius: "999px",
-            fontSize: "0.7rem",
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
+          className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md ${CATEGORY_BADGE_CLASS[place.category]}`}
         >
           {categoryLabel}
         </span>
+
+        {/* Price badge */}
+        {place.price_range && (
+          <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold border border-white/10">
+            {"฿".repeat(place.price_range)}
+          </span>
+        )}
       </div>
 
-      {/* Card body */}
-      <div style={{ padding: "1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        <h3
-          style={{
-            fontSize: "1rem",
-            fontWeight: 700,
-            color: "#edf2f4",
-            overflow: "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: "vertical",
-          }}
-        >
+      {/* Body */}
+      <div className="p-5 flex flex-col flex-1">
+        <h3 className="font-inter font-bold text-xl text-ink mb-1 line-clamp-1 group-hover:text-primary-red transition-colors">
           {place.name}
         </h3>
 
         {place.name_en && (
-          <p style={{ fontSize: "0.8rem", color: "#8d99ae", marginTop: "-0.25rem" }}>
+          <p className="text-xs text-ink-muted mb-3 line-clamp-1">
             {place.name_en}
           </p>
         )}
 
-        {/* Province */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.3rem",
-            color: "#8d99ae",
-            fontSize: "0.8rem",
-          }}
-        >
-          <MapPin size={13} aria-hidden="true" />
+        <div className="flex items-center gap-1.5 text-xs text-ink-secondary mb-3 font-medium">
+          <MapPin size={14} className="text-primary-red" aria-hidden="true" />
           <span>{place.province}</span>
           {place.district && <span>· {place.district}</span>}
         </div>
 
-        {/* Price range */}
-        {place.price_range && (
-          <div style={{ color: "#d90429", fontSize: "0.85rem", fontWeight: 600 }}>
-            {"฿".repeat(place.price_range)}
-            <span style={{ color: "rgba(255,255,255,0.2)" }}>
-              {"฿".repeat(3 - place.price_range)}
-            </span>
-          </div>
-        )}
-
-        {/* Description preview */}
         {place.description && (
-          <p
-            style={{
-              fontSize: "0.82rem",
-              color: "#8d99ae",
-              flex: 1,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}
-          >
+          <p className="text-sm text-ink-secondary leading-relaxed line-clamp-2 mb-4 flex-1">
             {place.description}
           </p>
         )}
 
-        {/* View detail link */}
-        <Link
-          href={`/places/${place.id}`}
-          style={{
-            marginTop: "auto",
-            paddingTop: "0.75rem",
-            fontSize: "0.85rem",
-            fontWeight: 600,
-            color: "#d90429",
-            textDecoration: "none",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.3rem",
-            transition: "gap 0.2s",
-          }}
-          aria-label={`View details for ${place.name}`}
-        >
-          View details
-        </Link>
+        <div className="mt-auto pt-4 border-t border-red-100">
+          <Link
+            href={place.affiliate_url || `/places/${place.id}`}
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-primary-red hover:text-ink transition-colors"
+            aria-label={`View details for ${place.name}`}
+          >
+            View details
+            <ArrowRight size={14} aria-hidden="true" className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
       </div>
     </article>
   );

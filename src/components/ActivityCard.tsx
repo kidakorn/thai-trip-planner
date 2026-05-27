@@ -10,11 +10,11 @@ const CATEGORY_ICONS: Record<Category, React.ElementType> = {
 };
 
 const CATEGORY_BADGE_CLASS: Record<Category, string> = {
-  food: "badge-food",
-  drink: "badge-drink",
-  hotel: "badge-hotel",
-  activity: "badge-activity",
-  attraction: "badge-attraction",
+  food: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+  drink: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+  hotel: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  activity: "bg-green-500/10 text-green-500 border-green-500/20",
+  attraction: "bg-primary-red/10 text-primary-red border-primary-red/20",
 };
 
 interface ActivityCardProps {
@@ -37,157 +37,66 @@ export default function ActivityCard({
   const Icon = CATEGORY_ICONS[activity.category];
 
   return (
-    <article
-      style={{
-        display: "flex",
-        gap: "1rem",
-        padding: "1rem",
-        borderRadius: "0.75rem",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        transition: "background 0.2s",
-      }}
-    >
-      {/* Time + icon column */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "0.4rem",
-          minWidth: "4rem",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            color: "#d90429",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.2rem",
-          }}
-        >
-          <Clock size={11} aria-hidden="true" />
+    <article className="grid grid-cols-[48px_1fr] sm:grid-cols-[56px_1fr] gap-4 p-5 bg-white border border-red-100 rounded-3xl hover:border-red-300 shadow-sm hover:shadow-md transition-all">
+      {/* Time column */}
+      <div className="flex flex-col items-center gap-2 pt-1">
+        <span className="text-[11px] font-bold text-primary-red flex items-center gap-1">
+          <Clock size={10} aria-hidden="true" />
           {activity.time}
         </span>
-        <div
-          style={{
-            width: "2.25rem",
-            height: "2.25rem",
-            borderRadius: "0.5rem",
-            background: "rgba(217, 4, 41, 0.1)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Icon size={16} color="#d90429" aria-hidden="true" />
+        <div className="w-10 h-10 rounded-xl bg-primary-red/10 flex items-center justify-center shrink-0 border border-primary-red/20">
+          <Icon size={16} className="text-primary-red" aria-hidden="true" />
         </div>
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: "0.5rem",
-            flexWrap: "wrap",
-          }}
-        >
+      <div className="flex flex-col">
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
           <div>
-            <h4
-              style={{
-                fontSize: "0.95rem",
-                fontWeight: 700,
-                color: "#edf2f4",
-                marginBottom: "0.15rem",
-              }}
-            >
+            <h4 className="text-[15px] font-inter font-bold text-ink mb-1.5 leading-tight">
               {activity.place_name}
             </h4>
-            <span
-              className={CATEGORY_BADGE_CLASS[activity.category]}
-              style={{
-                display: "inline-block",
-                padding: "0.1rem 0.5rem",
-                borderRadius: "999px",
-                fontSize: "0.65rem",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
+            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${CATEGORY_BADGE_CLASS[activity.category]}`}>
               {categoryLabel}
             </span>
           </div>
 
-          {/* Cost */}
-          <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ fontSize: "0.75rem", color: "#8d99ae" }}>{costLabel}</div>
-            <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#edf2f4" }}>
+          <div className="text-right shrink-0">
+            <div className="text-[10px] uppercase tracking-wider text-ink-muted mb-0.5 font-bold">
+              {costLabel}
+            </div>
+            <div className="text-base font-inter font-bold text-ink">
               ฿{activity.estimated_cost.toLocaleString()}
             </div>
-            <div style={{ fontSize: "0.72rem", color: "#8d99ae" }}>
+            <div className="text-[11px] text-ink-muted">
               {activity.duration_minutes} {minutesLabel}
             </div>
           </div>
         </div>
 
-        <p
-          style={{
-            marginTop: "0.5rem",
-            fontSize: "0.85rem",
-            color: "#8d99ae",
-            lineHeight: 1.6,
-          }}
-        >
+        <p className={`text-[13px] text-ink-secondary leading-relaxed ${activity.tip || activity.affiliate_url ? 'mb-4' : ''}`}>
           {activity.description}
         </p>
 
-        {/* Tip */}
         {activity.tip && (
-          <div
-            style={{
-              marginTop: "0.5rem",
-              padding: "0.5rem 0.75rem",
-              borderRadius: "0.5rem",
-              background: "rgba(217, 4, 41, 0.06)",
-              border: "1px solid rgba(217, 4, 41, 0.15)",
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "0.4rem",
-            }}
-          >
-            <Lightbulb size={13} color="#d90429" style={{ marginTop: "0.15rem", flexShrink: 0 }} aria-hidden="true" />
-            <p style={{ fontSize: "0.8rem", color: "#edf2f4" }}>
-              <strong style={{ color: "#d90429" }}>{tipLabel}: </strong>
+          <div className={`p-3 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-3 ${activity.affiliate_url ? 'mb-3' : ''}`}>
+            <Lightbulb size={14} className="text-primary-red mt-0.5 shrink-0" aria-hidden="true" />
+            <p className="text-[12px] text-ink-secondary leading-relaxed">
+              <strong className="text-primary-red font-bold">{tipLabel}: </strong>
               {activity.tip}
             </p>
           </div>
         )}
 
-        {/* Affiliate link */}
         {activity.affiliate_url && (
           <a
             href={activity.affiliate_url}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`${bookLabel} — ${activity.place_name}`}
-            style={{
-              marginTop: "0.6rem",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.3rem",
-              fontSize: "0.82rem",
-              fontWeight: 600,
-              color: "#d90429",
-              textDecoration: "none",
-            }}
+            className="inline-flex items-center gap-1.5 text-[13px] font-bold text-primary-red hover:text-ink transition-colors"
           >
-            <ExternalLink size={13} aria-hidden="true" />
+            <ExternalLink size={14} aria-hidden="true" />
             {bookLabel}
           </a>
         )}

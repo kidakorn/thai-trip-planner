@@ -1,43 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Calendar, Wallet, Users, ChevronRight, Loader } from "lucide-react";
+import { MapPin, Calendar, Wallet, Users, ChevronRight, Loader, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/src/lib/useLanguage";
 import { TripStyle } from "@/src/lib/types";
-
-const THAI_PROVINCES = [
-  "กรุงเทพมหานคร",
-  "เชียงใหม่",
-  "ภูเก็ต",
-  "เชียงราย",
-  "กระบี่",
-  "พังงา",
-  "สุราษฎร์ธานี",
-  "นครราชสีมา",
-  "ขอนแก่น",
-  "อุดรธานี",
-  "อยุธยา",
-  "กาญจนบุรี",
-  "ประจวบคีรีขันธ์",
-  "ชลบุรี",
-  "ระยอง",
-  "ตราด",
-  "สมุย (สุราษฎร์ธานี)",
-  "พัทยา (ชลบุรี)",
-  "น่าน",
-  "แม่ฮ่องสอน",
-  "ลำปาง",
-  "พิษณุโลก",
-  "สุโขทัย",
-  "นครสวรรค์",
-  "เพชรบุรี",
-  "ราชบุรี",
-  "ลพบุรี",
-  "สระบุรี",
-  "นครปฐม",
-  "สมุทรสาคร",
-];
+import { PROVINCE_NAMES_EN } from "@/src/lib/constants";
 
 interface FormState {
   province: string;
@@ -55,12 +23,40 @@ interface FormErrors {
   style?: string;
 }
 
+const STYLE_OPTIONS: { value: TripStyle; label: string }[] = [
+  { value: "culture", label: "Culture" },
+  { value: "nature", label: "Nature" },
+  { value: "food", label: "Food" },
+  { value: "nightlife", label: "Nightlife" },
+  { value: "relaxation", label: "Relaxation" },
+];
+
 export default function PlanForm() {
   const { t } = useLanguage();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
+  const [isAiMode, setIsAiMode] = useState(false);
+  const [provinces, setProvinces] = useState<string[]>([]);
+  const [loadingProvinces, setLoadingProvinces] = useState(true);
+
+  useEffect(() => {
+    async function fetchProvinces() {
+      try {
+        const res = await fetch("/api/provinces");
+        if (res.ok) {
+          const data = await res.json();
+          setProvinces(data);
+        }
+      } catch (err) {
+        console.error("Failed to load provinces", err);
+      } finally {
+        setLoadingProvinces(false);
+      }
+    }
+    fetchProvinces();
+  }, []);
 
   const [form, setForm] = useState<FormState>({
     province: "",
@@ -73,12 +69,10 @@ export default function PlanForm() {
 
   const validate = (): boolean => {
     const next: FormErrors = {};
-
-    if (!form.province) next.province = t("form_validation_province");
-    if (form.days < 1 || form.days > 14) next.days = t("form_validation_days");
-    if (form.budget < 500) next.budget = t("form_validation_budget");
-    if (form.style.length === 0) next.style = t("form_validation_style");
-
+    if (!isAiMode && !form.province) next.province = t("form_validation_province") || "Select a destination";
+    if (form.days < 1 || form.days > 14) next.days = t("form_validation_days") || "Must be 1-14 days";
+    if (form.budget < 500) next.budget = t("form_validation_budget") || "Minimum budget is 500 THB";
+    if (form.style.length === 0) next.style = t("form_validation_style") || "Select at least one style";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -95,7 +89,6 @@ export default function PlanForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-
     setIsLoading(true);
     setServerError(null);
 
@@ -104,7 +97,7 @@ export default function PlanForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          province: form.province,
+          province: isAiMode ? "" : form.province,
           days: form.days,
           budget: form.budget,
           travelers: form.travelers,
@@ -115,100 +108,80 @@ export default function PlanForm() {
 
       if (!res.ok) {
         const data = await res.json();
-        setServerError(data.error ?? t("error_general"));
+        setServerError(data.error ?? t("error_general") ?? "Failed to create trip");
         return;
       }
 
       const data = await res.json();
       router.push(`/trip/${data.id}`);
     } catch {
-      setServerError(t("error_general"));
+      setServerError(t("error_general") ?? "Network error occurred");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const STYLE_KEYS: { value: TripStyle; label: string }[] = [
-    { value: "culture", label: t("form_style_culture") },
-    { value: "nature", label: t("form_style_nature") },
-    { value: "food", label: t("form_style_food") },
-    { value: "nightlife", label: t("form_style_nightlife") },
-    { value: "relaxation", label: t("form_style_relaxation") },
-  ];
-
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "0.65rem 0.9rem",
-    borderRadius: "0.5rem",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    color: "#edf2f4",
-    fontSize: "0.95rem",
-    outline: "none",
-    transition: "border-color 0.2s",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: "block",
-    marginBottom: "0.4rem",
-    fontSize: "0.85rem",
-    fontWeight: 600,
-    color: "#8d99ae",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-  };
-
-  const errorStyle: React.CSSProperties = {
-    marginTop: "0.25rem",
-    fontSize: "0.78rem",
-    color: "#ef233c",
-  };
-
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-        {/* Province */}
-        <div>
-          <label htmlFor="province" style={labelStyle}>
-            <MapPin
-              size={13}
-              style={{ display: "inline", marginRight: "0.3rem" }}
-              aria-hidden="true"
-            />
-            {t("form_province_label")}
-          </label>
-          <select
-            id="province"
-            value={form.province}
-            onChange={(e) => setForm((p) => ({ ...p, province: e.target.value }))}
-            style={{ ...inputStyle, cursor: "pointer" }}
-            aria-required="true"
-            aria-describedby={errors.province ? "province-error" : undefined}
+    <form onSubmit={handleSubmit} noValidate className="font-inter">
+      <div className="flex flex-col gap-6">
+
+        {/* Mode Toggle */}
+        <div className="flex gap-2 p-1.5 bg-red-50/50 rounded-full border border-red-100 relative">
+          <button
+            type="button"
+            onClick={() => setIsAiMode(false)}
+            className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${!isAiMode ? "bg-white text-primary-red shadow-md border border-red-100" : "text-ink-muted hover:text-ink"}`}
           >
-            <option value="">{t("form_province_placeholder")}</option>
-            {THAI_PROVINCES.map((prov) => (
-              <option key={prov} value={prov}>
-                {prov}
-              </option>
-            ))}
-          </select>
-          {errors.province && (
-            <p id="province-error" style={errorStyle} role="alert">
-              {errors.province}
-            </p>
-          )}
+            {t("mode_know")}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setIsAiMode(true); setForm(p => ({...p, province: ""})); }}
+            className={`flex-1 py-2 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 ${isAiMode ? "bg-white text-primary-red shadow-md border border-red-100" : "text-ink-muted hover:text-ink"}`}
+          >
+            {t("mode_help")}
+          </button>
         </div>
 
-        {/* Days + Budget row */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+        {/* Province Selection */}
+        {!isAiMode && (
           <div>
-            <label htmlFor="days" style={labelStyle}>
-              <Calendar
-                size={13}
-                style={{ display: "inline", marginRight: "0.3rem" }}
-                aria-hidden="true"
-              />
-              {t("form_days_label")}
+            <label htmlFor="province" className="flex items-center gap-2 text-sm font-bold text-ink-muted uppercase tracking-wider mb-2">
+              <MapPin size={14} aria-hidden="true" />
+              Destination *
+            </label>
+            <div className="relative">
+              <select
+                id="province"
+                value={form.province}
+                onChange={(e) => setForm((p) => ({ ...p, province: e.target.value }))}
+                className="w-full bg-white text-ink font-bold px-4 py-3 rounded-xl border border-red-100 focus:border-primary-red focus:ring-1 focus:ring-primary-red outline-none appearance-none cursor-pointer shadow-sm"
+                aria-required="true"
+                aria-describedby={errors.province ? "province-error" : undefined}
+                disabled={loadingProvinces}
+              >
+                <option value="">{loadingProvinces ? "Loading..." : "Select a province"}</option>
+                {provinces.map((prov) => (
+                  <option key={prov} value={prov}>
+                    {PROVINCE_NAMES_EN[prov] ?? prov}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.province && (
+              <p id="province-error" role="alert" className="mt-2 text-xs text-primary-red flex items-center gap-1 font-bold">
+                <AlertCircle size={12} aria-hidden="true" /> {errors.province}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Days + Budget */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="days" className="flex items-center gap-2 text-sm font-bold text-ink-muted uppercase tracking-wider mb-2">
+              <Calendar size={14} aria-hidden="true" />
+              Days *
             </label>
             <input
               id="days"
@@ -216,28 +189,22 @@ export default function PlanForm() {
               min={1}
               max={14}
               value={form.days}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, days: Number(e.target.value) }))
-              }
-              style={inputStyle}
+              onChange={(e) => setForm((p) => ({ ...p, days: Number(e.target.value) }))}
+              className="w-full bg-white text-ink font-bold px-4 py-3 rounded-xl border border-red-100 focus:border-primary-red focus:ring-1 focus:ring-primary-red outline-none shadow-sm"
               aria-required="true"
               aria-describedby={errors.days ? "days-error" : undefined}
             />
             {errors.days && (
-              <p id="days-error" style={errorStyle} role="alert">
-                {errors.days}
+              <p id="days-error" role="alert" className="mt-2 text-xs text-primary-red flex items-center gap-1 font-bold">
+                <AlertCircle size={12} aria-hidden="true" /> {errors.days}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="budget" style={labelStyle}>
-              <Wallet
-                size={13}
-                style={{ display: "inline", marginRight: "0.3rem" }}
-                aria-hidden="true"
-              />
-              {t("form_budget_label")}
+            <label htmlFor="budget" className="flex items-center gap-2 text-sm font-bold text-ink-muted uppercase tracking-wider mb-2">
+              <Wallet size={14} aria-hidden="true" />
+              Budget (THB) *
             </label>
             <input
               id="budget"
@@ -245,16 +212,14 @@ export default function PlanForm() {
               min={500}
               step={500}
               value={form.budget}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, budget: Number(e.target.value) }))
-              }
-              style={inputStyle}
+              onChange={(e) => setForm((p) => ({ ...p, budget: Number(e.target.value) }))}
+              className="w-full bg-white text-ink font-bold px-4 py-3 rounded-xl border border-red-100 focus:border-primary-red focus:ring-1 focus:ring-primary-red outline-none shadow-sm"
               aria-required="true"
               aria-describedby={errors.budget ? "budget-error" : undefined}
             />
             {errors.budget && (
-              <p id="budget-error" style={errorStyle} role="alert">
-                {errors.budget}
+              <p id="budget-error" role="alert" className="mt-2 text-xs text-primary-red flex items-center gap-1 font-bold">
+                <AlertCircle size={12} aria-hidden="true" /> {errors.budget}
               </p>
             )}
           </div>
@@ -262,13 +227,9 @@ export default function PlanForm() {
 
         {/* Travelers */}
         <div>
-          <label htmlFor="travelers" style={labelStyle}>
-            <Users
-              size={13}
-              style={{ display: "inline", marginRight: "0.3rem" }}
-              aria-hidden="true"
-            />
-            {t("form_travelers_label")}
+          <label htmlFor="travelers" className="flex items-center gap-2 text-sm font-bold text-ink-muted uppercase tracking-wider mb-2">
+            <Users size={14} aria-hidden="true" />
+            Travelers
           </label>
           <input
             id="travelers"
@@ -276,46 +237,32 @@ export default function PlanForm() {
             min={1}
             max={20}
             value={form.travelers}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, travelers: Number(e.target.value) }))
-            }
-            style={{ ...inputStyle, maxWidth: "10rem" }}
+            onChange={(e) => setForm((p) => ({ ...p, travelers: Number(e.target.value) }))}
+            className="w-full sm:max-w-[160px] bg-white text-ink font-bold px-4 py-3 rounded-xl border border-red-100 focus:border-primary-red focus:ring-1 focus:ring-primary-red outline-none shadow-sm"
           />
+        </div>
+
+        {/* Divider */}
+        <div className="text-sm font-bold text-ink-muted uppercase tracking-wider border-t border-red-100 pt-6 mt-2">
+          Travel style *
         </div>
 
         {/* Style selector */}
         <div>
-          <p
-            id="style-group-label"
-            style={labelStyle}
-            aria-hidden="false"
-          >
-            {t("form_style_label")}
-          </p>
-          <div
-            role="group"
-            aria-labelledby="style-group-label"
-            style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem" }}
-          >
-            {STYLE_KEYS.map(({ value, label }) => {
-              const selected = form.style.includes(value);
+          <div role="group" aria-label="Travel style" className="flex flex-wrap gap-2">
+            {STYLE_OPTIONS.map(({ value, label }) => {
+              const isActive = form.style.includes(value);
               return (
                 <button
                   type="button"
                   key={value}
                   onClick={() => toggleStyle(value)}
-                  aria-pressed={selected}
-                  style={{
-                    padding: "0.45rem 1rem",
-                    borderRadius: "999px",
-                    border: `1px solid ${selected ? "#d90429" : "rgba(255,255,255,0.12)"}`,
-                    background: selected ? "rgba(217, 4, 41, 0.15)" : "transparent",
-                    color: selected ? "#d90429" : "#8d99ae",
-                    fontWeight: 600,
-                    fontSize: "0.85rem",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
+                  aria-pressed={isActive}
+                  className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${
+                    isActive 
+                      ? "bg-primary-red text-white border border-secondary-red shadow-lg shadow-primary-red/20" 
+                      : "bg-white text-ink-secondary border border-red-100 hover:border-red-300 hover:text-ink shadow-sm"
+                  }`}
                 >
                   {label}
                 </button>
@@ -323,90 +270,56 @@ export default function PlanForm() {
             })}
           </div>
           {errors.style && (
-            <p style={errorStyle} role="alert">
-              {errors.style}
+            <p role="alert" className="mt-2 text-xs text-primary-red flex items-center gap-1 font-bold">
+              <AlertCircle size={12} aria-hidden="true" /> {errors.style}
             </p>
           )}
         </div>
 
-        {/* Preferences textarea */}
+        {/* Preferences */}
         <div>
-          <label htmlFor="preferences" style={labelStyle}>
-            {t("form_preferences_label")}
+          <label htmlFor="preferences" className="flex justify-between items-center text-sm font-bold text-ink-muted uppercase tracking-wider mb-2">
+            <span>{isAiMode ? "Describe your dream trip *" : "Additional preferences (optional)"}</span>
+            {isAiMode && <span className="text-[10px] text-primary-red bg-primary-red/10 px-2 py-0.5 rounded-full">AI Picks Province</span>}
           </label>
           <textarea
             id="preferences"
             rows={3}
             value={form.preferences}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, preferences: e.target.value }))
-            }
-            placeholder={t("form_preferences_placeholder")}
-            style={{
-              ...inputStyle,
-              resize: "vertical",
-              fontFamily: "inherit",
-              lineHeight: 1.6,
-            }}
+            onChange={(e) => setForm((p) => ({ ...p, preferences: e.target.value }))}
+            placeholder="e.g. love seafood, avoid crowds, must be pet-friendly"
+            className="w-full bg-white text-ink font-medium px-4 py-3 rounded-xl border border-red-100 focus:border-primary-red focus:ring-1 focus:ring-primary-red outline-none resize-y shadow-sm"
           />
         </div>
 
         {/* Server error */}
         {serverError && (
-          <p
-            role="alert"
-            style={{
-              padding: "0.75rem",
-              borderRadius: "0.5rem",
-              background: "rgba(239, 35, 60, 0.08)",
-              border: "1px solid rgba(239, 35, 60, 0.3)",
-              color: "#ef233c",
-              fontSize: "0.9rem",
-            }}
-          >
+          <div role="alert" className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-bold flex items-center gap-2">
+            <AlertCircle size={16} aria-hidden="true" />
             {serverError}
-          </p>
+          </div>
         )}
 
         {/* Submit */}
         <button
           type="submit"
           disabled={isLoading}
-          className="btn-primary-custom"
-          style={{
-            padding: "0.85rem 2rem",
-            fontSize: "1rem",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.5rem",
-            width: "100%",
-          }}
+          className="w-full py-4 mt-2 bg-primary-red hover:bg-secondary-red text-white font-bold rounded-xl shadow-lg hover:shadow-primary-red/30 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0"
           aria-busy={isLoading}
         >
           {isLoading ? (
             <>
-              <Loader size={18} className="spin" aria-hidden="true" />
-              {t("form_submitting")}
+              <Loader size={18} className="animate-spin" aria-hidden="true" />
+              Generating your itinerary...
             </>
           ) : (
             <>
-              {t("form_submit")}
+              Generate Trip Plan
               <ChevronRight size={18} aria-hidden="true" />
             </>
           )}
         </button>
       </div>
-
-      <style>{`
-        .spin {
-          animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </form>
   );
 }
