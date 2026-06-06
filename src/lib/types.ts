@@ -95,6 +95,7 @@ export interface TripRequest {
   travelers: number;
   style: TripStyle[];
   preferences?: string;
+  language: "th" | "en";
 }
 
 // =====================
@@ -108,6 +109,7 @@ export const TripRequestSchema = z.object({
   travelers: z.number().int().min(1).max(20),
   style: z.array(z.enum(TRIP_STYLES)).min(1, "Select at least one style"),
   preferences: z.string().max(500).optional(),
+  language: z.enum(["th", "en"]).default("th"),
 });
 
 export const PlaceSchema = z.object({

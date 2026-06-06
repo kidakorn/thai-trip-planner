@@ -28,9 +28,10 @@ const LeafletMap = dynamic(() => import("@/src/components/LeafletMapInner"), {
 interface MapViewProps {
   activities: Activity[];
   bookLabel: string;
+  hoveredActivity?: Activity | null;
 }
 
-export default function MapView({ activities, bookLabel }: MapViewProps) {
+export default function MapView({ activities, bookLabel, hoveredActivity }: MapViewProps) {
   const withCoords = activities.filter(
     (a) => a.lat !== null && a.lng !== null
   );
@@ -39,5 +40,5 @@ export default function MapView({ activities, bookLabel }: MapViewProps) {
     return null;
   }
 
-  return <LeafletMap activities={withCoords} bookLabel={bookLabel} />;
+  return <LeafletMap activities={withCoords} bookLabel={bookLabel} hoveredActivity={hoveredActivity} />;
 }

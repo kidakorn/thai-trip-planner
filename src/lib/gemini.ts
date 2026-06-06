@@ -1,7 +1,10 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { VertexAI } from "@google-cloud/vertexai";
 import { Place, TripRequest, TripPlan, TripPlanSchema } from "@/src/lib/types";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const vertexAI = new VertexAI({
+  project: process.env.GOOGLE_CLOUD_PROJECT || "thai-trip-planner-498416",
+  location: "us-central1"
+});
 
 // Build a minimal, safe representation of places to keep the prompt token count low.
 function serializePlaces(places: Place[]) {
@@ -24,11 +27,13 @@ export async function generateTripPlan(
   request: TripRequest,
   places: Place[]
 ): Promise<TripPlan> {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = vertexAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+  const langPrompt = request.language === "en" ? "English" : "Thai";
 
   const prompt = `
 You are a Thai travel expert. Create a detailed trip plan based on the following requirements.
 Respond ONLY with a valid JSON object. Do not include markdown fences or extra text.
+IMPORTANT: All textual content (titles, summaries, descriptions, tips) MUST be written in ${langPrompt}.
 
 Requirements:
 - Province: ${request.province}
@@ -42,22 +47,22 @@ ${JSON.stringify(serializePlaces(places), null, 2)}
 
 Required JSON structure:
 {
-  "title": "Trip title in Thai",
-  "summary": "1-2 sentence summary in Thai",
+  "title": "Trip title in ${langPrompt}",
+  "summary": "1-2 sentence summary in ${langPrompt}",
   "days": [
     {
       "day": 1,
-      "title": "Day 1 title in Thai",
+      "title": "Day 1 title in ${langPrompt}",
       "activities": [
         {
           "time": "08:00",
-          "place_name": "Place name",
+          "place_name": "Place name in ${langPrompt}",
           "place_id": "uuid or null",
           "category": "food|drink|hotel|activity|attraction",
-          "description": "Description in Thai",
+          "description": "Description in ${langPrompt}",
           "duration_minutes": 60,
           "estimated_cost": 200,
-          "tip": "Helpful tip in Thai",
+          "tip": "Helpful tip in ${langPrompt}",
           "lat": 18.7883,
           "lng": 98.9853,
           "affiliate_url": "https://... or null"
@@ -67,7 +72,7 @@ Required JSON structure:
     }
   ],
   "total_budget": 3000,
-  "tips": ["General travel tip in Thai", "Another tip"]
+  "tips": ["General travel tip in ${langPrompt}", "Another tip in ${langPrompt}"]
 }
 `;
 
@@ -78,7 +83,7 @@ Required JSON structure:
     const result = await model.generateContent(prompt);
     clearTimeout(timeout);
 
-    const rawText = result.response.text();
+    const rawText = result.response.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     // Strip potential markdown code fences if the model wraps the JSON
     const cleaned = rawText
@@ -103,7 +108,7 @@ Required JSON structure:
 }
 
 export async function matchProvince(request: TripRequest): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = vertexAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
 
   const prompt = `You are a Thai travel expert. The user wants to visit Thailand but doesn't know which province to choose.
 Match their preferences to EXACTLY ONE of the 77 provinces of Thailand.
@@ -118,7 +123,7 @@ Respond ONLY with the official Thai name of the best matching province (e.g., "à
 
   try {
     const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const text = (result.response.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
     return text;
   } catch (error) {
     console.error("Error matching province:", error);

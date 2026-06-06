@@ -3,96 +3,96 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Category } from "@/src/lib/types";
+import { useLanguage } from "@/src/lib/useLanguage";
+import { PROVINCE_NAMES_EN } from "@/src/lib/constants";
 
-const CATEGORY_OPTIONS: { value: "all" | Category; label: string }[] = [
-  { value: "all", label: "All Categories" },
-  { value: "food", label: "Food" },
-  { value: "drink", label: "Drinks" },
-  { value: "hotel", label: "Hotels" },
-  { value: "activity", label: "Activities" },
-  { value: "attraction", label: "Attractions" },
+const CATS: { value: "all" | Category; key: string }[] = [
+  { value: "all",        key: "places_filter_all" },
+  { value: "food",       key: "places_filter_food" },
+  { value: "drink",      key: "places_filter_drink" },
+  { value: "hotel",      key: "places_filter_hotel" },
+  { value: "activity",   key: "places_filter_activity" },
+  { value: "attraction", key: "places_filter_attraction" },
 ];
 
-interface PlacesFilterProps {
+export default function PlacesFilter({
+  currentCategory,
+  currentProvince,
+}: {
   currentCategory: string;
   currentProvince: string;
-}
-
-export default function PlacesFilter({ currentCategory, currentProvince }: PlacesFilterProps) {
-  const router = useRouter();
-  const pathname = usePathname();
+}) {
+  const { t, locale } = useLanguage();
+  const router       = useRouter();
+  const pathname     = usePathname();
   const searchParams = useSearchParams();
-  const [provinces, setProvinces] = useState<string[]>([]);
-  const [loadingProvinces, setLoadingProvinces] = useState(true);
+  const [provinces, setProvinces]   = useState<string[]>([]);
+  const [loadingP,  setLoadingP]    = useState(true);
 
   useEffect(() => {
-    async function fetchProvinces() {
-      try {
-        const res = await fetch("/api/provinces");
-        if (res.ok) {
-          const data = await res.json();
-          setProvinces(data);
-        }
-      } catch (err) {
-        console.error("Failed to load provinces", err);
-      } finally {
-        setLoadingProvinces(false);
-      }
-    }
-    fetchProvinces();
+    fetch("/api/provinces")
+      .then(r => r.ok ? r.json() : [])
+      .then(setProvinces)
+      .catch(() => {})
+      .finally(() => setLoadingP(false));
   }, []);
 
-  const updateFilters = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value === "all") {
-      params.delete(key);
-    } else {
-      params.set(key, value);
-    }
-    router.push(`${pathname}?${params.toString()}`);
+  const update = (key: string, val: string) => {
+    const p = new URLSearchParams(searchParams.toString());
+    val === "all" ? p.delete(key) : p.set(key, val);
+    router.push(`${pathname}?${p.toString()}`);
   };
 
+  const LABEL = "text-[9px] font-bold uppercase tracking-[0.14em] text-ink-subtle mb-2 block";
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* Category Filter */}
+    <div className="flex flex-col gap-5">
+
+      {/* Category */}
       <div>
-        <h3 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-3">Category</h3>
-        <div className="flex flex-col gap-2">
-          {CATEGORY_OPTIONS.map(({ value, label }) => {
-            const isActive = value === currentCategory;
+        <p className={LABEL}>{t("places_filter_category")}</p>
+        <div className="flex flex-col gap-1">
+          {CATS.map(({ value, key }) => {
+            const on = value === currentCategory;
             return (
               <button
-                key={value}
-                type="button"
-                onClick={() => updateFilters("category", value)}
-                className={`text-left px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                  isActive 
-                    ? "bg-primary-red text-white border border-secondary-red shadow-md shadow-primary-red/20" 
-                    : "bg-red-50 text-ink-secondary border border-red-100 hover:bg-red-100 hover:text-ink"
+                key={value} type="button"
+                onClick={() => update("category", value)}
+                className={`text-left px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  on
+                    ? "bg-primary-red/10 text-primary-red border border-primary-red/20"
+                    : "text-ink-muted hover:text-ink hover:bg-white/4 border border-transparent"
                 }`}
               >
-                {label}
+                {t(key as any)}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Province Filter */}
+      {/* Province */}
       <div>
-        <h3 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-3">Province</h3>
+        <label htmlFor="province-filter" className={LABEL}>
+          {t("places_filter_province")}
+        </label>
         <select
+          id="province-filter"
           value={currentProvince}
-          onChange={(e) => updateFilters("province", e.target.value)}
-          className="w-full bg-red-50 text-ink text-sm font-bold px-4 py-2.5 rounded-xl border border-red-100 focus:border-primary-red focus:ring-1 focus:ring-primary-red outline-none appearance-none cursor-pointer"
+          onChange={e => update("province", e.target.value)}
+          className="input-dark text-xs cursor-pointer appearance-none"
+          disabled={loadingP}
         >
-          <option value="all">All Provinces</option>
-          {!loadingProvinces && provinces.map((p) => (
-            <option key={p} value={p}>{p}</option>
+          <option value="all">{t("places_filter_all_provinces")}</option>
+          {!loadingP && provinces.map(p => (
+            <option key={p} value={p}>
+              {locale === "en" ? (PROVINCE_NAMES_EN[p] ?? p) : p}
+            </option>
           ))}
         </select>
-        {loadingProvinces && <p className="text-xs text-ink-muted mt-2">Loading provinces...</p>}
+        {loadingP && <p className="text-[10px] text-ink-subtle mt-1.5">{t("places_filter_loading")}</p>}
       </div>
+
     </div>
   );
 }

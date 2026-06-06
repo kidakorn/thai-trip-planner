@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Place, PlaceSchema, CATEGORIES } from "@/src/lib/types";
 import { useLanguage } from "@/src/lib/useLanguage";
-import { Plus, Pencil, Trash2, X, Save, AlertTriangle } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Save, AlertTriangle, Upload, Image as ImageIcon } from "lucide-react";
+import { supabase } from "@/src/lib/supabase";
 
 interface AdminPlacesClientProps {
   initialPlaces: Place[];
@@ -23,6 +24,8 @@ const EMPTY_FORM = {
   price_range: 1,
   description: "",
   description_en: "",
+  description_en: "",
+  images: [] as string[],
   affiliate_url: "",
   is_published: true,
 };
@@ -34,6 +37,7 @@ export default function AdminPlacesClient({ initialPlaces }: AdminPlacesClientPr
   const [editTarget, setEditTarget] = useState<Place | null>(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const openCreate = () => {
@@ -55,7 +59,9 @@ export default function AdminPlacesClient({ initialPlaces }: AdminPlacesClientPr
       lng: place.lng,
       price_range: place.price_range ?? 1,
       description: place.description ?? "",
+      description: place.description ?? "",
       description_en: place.description_en ?? "",
+      images: place.images ?? [],
       affiliate_url: place.affiliate_url ?? "",
       is_published: place.is_published,
     });
@@ -131,7 +137,38 @@ export default function AdminPlacesClient({ initialPlaces }: AdminPlacesClientPr
       setSaving(false);
     }
   };
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
+    setUploading(true);
+    setFormError(null);
+
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `places/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from("places")
+        .upload(filePath, file, { cacheControl: "3600", upsert: false });
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from("places")
+        .getPublicUrl(data.path);
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), publicUrlData.publicUrl],
+      }));
+    } catch (err: any) {
+      setFormError(err.message || "Failed to upload image. Did you setup Supabase Storage?");
+    } finally {
+      setUploading(false);
+    }
+  };
   const handleDelete = async (place: Place) => {
     if (!confirm(`ลบ "${place.name}"?`)) return;
 
@@ -348,6 +385,28 @@ export default function AdminPlacesClient({ initialPlaces }: AdminPlacesClientPr
                 onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
               />
             </div>
+            
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={labelStyle}>Images</label>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+                {formData.images.map((img, idx) => (
+                  <div key={idx} style={{ position: "relative", width: "80px", height: "80px", borderRadius: "0.5rem", overflow: "hidden" }}>
+                    <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <button
+                      type="button"
+                      onClick={() => setFormData(p => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))}
+                      style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.6)", border: "none", color: "white", borderRadius: "50%", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+                <label style={{ width: "80px", height: "80px", borderRadius: "0.5rem", border: "1px dashed rgba(255,255,255,0.2)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#8d99ae", background: "rgba(255,255,255,0.02)" }}>
+                  {uploading ? <span style={{ fontSize: "10px" }}>Up...</span> : <Upload size={20} />}
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} disabled={uploading} />
+                </label>
+              </div>
+            </div>
           </div>
 
           {formError && (
@@ -420,7 +479,7 @@ export default function AdminPlacesClient({ initialPlaces }: AdminPlacesClientPr
                 background: "rgba(255,255,255,0.02)",
               }}
             >
-              {["Name", "Category", "Province", "Published", "Actions"].map((h) => (
+              {["Image", "Name", "Category", "Province", "Published", "Actions"].map((h) => (
                 <th
                   key={h}
                   scope="col"
@@ -448,6 +507,15 @@ export default function AdminPlacesClient({ initialPlaces }: AdminPlacesClientPr
                   transition: "background 0.15s",
                 }}
               >
+                <td style={{ padding: "0.75rem 1rem", width: "60px" }}>
+                  {place.images?.[0] ? (
+                    <img src={place.images[0]} alt="" style={{ width: "40px", height: "40px", borderRadius: "0.4rem", objectFit: "cover" }} />
+                  ) : (
+                    <div style={{ width: "40px", height: "40px", borderRadius: "0.4rem", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "#8d99ae" }}>
+                      <ImageIcon size={16} />
+                    </div>
+                  )}
+                </td>
                 <td style={{ padding: "0.75rem 1rem", fontSize: "0.88rem", color: "#edf2f4", fontWeight: 600 }}>
                   {place.name}
                   {place.name_en && (

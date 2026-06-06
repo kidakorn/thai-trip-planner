@@ -3,10 +3,11 @@
 import {
   createContext,
   useContext,
-  useState,
   useCallback,
   ReactNode,
 } from "react";
+import { useLocale } from "next-intl";
+import { useRouter, usePathname } from "@/src/i18n/routing";
 import { translations, Lang, TranslationKey } from "@/src/lib/translations";
 
 interface LanguageContextValue {
@@ -22,17 +23,26 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [lang, setLang] = useState<Lang>("en");
+  // Use next-intl as the single source of truth for language
+  const locale = useLocale() as Lang;
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const setLang = useCallback((newLang: Lang) => {
+    router.replace(pathname, { locale: newLang });
+  }, [router, pathname]);
 
   const t = useCallback(
     (key: TranslationKey): string => {
-      return translations[lang][key] ?? key;
+      // Safely fallback if language is unsupported or key is missing
+      const currentTranslations = translations[locale] || translations.en;
+      return currentTranslations[key] ?? key;
     },
-    [lang]
+    [locale]
   );
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t }}>
+    <LanguageContext.Provider value={{ lang: locale, setLang, t }}>
       {children}
     </LanguageContext.Provider>
   );

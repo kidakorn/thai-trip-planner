@@ -26,11 +26,29 @@ export async function generateMetadata(
   }
 
   return {
-    title: trip.plan.title,
+    title: `${trip.plan.title} | Thai Trip Planner`,
     description: `${trip.plan.days}-day trip to ${trip.province} — ${trip.plan.summary}`,
     openGraph: {
       title: trip.plan.title,
       description: trip.plan.summary,
+      url: `https://thaitripplanner.com/trip/${id}`, // Will be dynamic based on production domain
+      siteName: 'Thai Trip Planner',
+      images: [
+        {
+          url: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?q=80&w=1200&h=630&fit=crop', // Beautiful Thailand hero image
+          width: 1200,
+          height: 630,
+          alt: `Trip to ${trip.province}`,
+        },
+      ],
+      locale: 'th_TH',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: trip.plan.title,
+      description: trip.plan.summary,
+      images: ['https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?q=80&w=1200&h=630&fit=crop'],
     },
   };
 }

@@ -1,83 +1,183 @@
 @import "tailwindcss";
-@plugin "daisyui";
-
-@theme {
-  /* ─── Color Palette: Dark Professional ─── */
-  --color-primary-red:  #D90429;
-  --color-secondary-red: #EF233C;
-  --color-dark-bg:      #2B2D42;
-  
-  --color-base-100:     #FFFFFF;
-  /* Semantic tokens used by components (Light Mode) */
-  --color-primary:        #EF4444; /* bright red */
-  --color-primary-light:  #F87171;
-  --color-secondary:      #F43F5E; /* rose */
-  --color-surface:        #FFFFFF; /* white background */
-  --color-surface-2:      #FFF1F2; /* very light rose for cards */
-  --color-surface-3:      #FFE4E6;
-  --color-ink:            #0F172A; /* dark slate for text */
-  --color-ink-secondary:  #334155;
-  --color-ink-muted:      #64748B;
-  --color-border:         #E2E8F0;
-  --color-border-strong:  #CBD5E1;
-
-  /* ─── Font Families ─── */
-  --font-inter: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-sans:  'Sarabun', 'Inter', ui-sans-serif, system-ui, sans-serif;
+@plugin "daisyui" {
+  themes: false;
 }
 
-/* ─── DaisyUI theme tokens ─── */
+/* ─────────────────────────────────────────────
+   Design Tokens
+──────────────────────────────────────────────*/
 :root {
-  --p:      #D90429;
-  --pf:     #EF233C;
-  --pc:     #ffffff;
-  --s:      #EF233C;
-  --sc:     #ffffff;
-  --b1:     #2B2D42;
-  --bc:     #FFFFFF;
-  --radius: 0.75rem;
+  /* ─ Surfaces ─ */
+  --color-surface:        #080a12;
+  --color-surface-2:      #0e1018;
+  --color-surface-3:      #141720;
+  --color-surface-4:      #1c1f2e;
+
+  /* ─ Brand ─ */
+  --color-primary-red:    #D90429;
+  --color-secondary-red:  #EF233C;
+
+  /* ─ Text ─ */
+  --color-ink:            #f0f2f8;
+  --color-ink-secondary:  #c4cad8;
+  --color-ink-muted:      #8891a8;
+  --color-ink-subtle:     #454d65;
+
+  /* ─ Borders ─ */
+  --color-border:         #1c1f2e;
+  --color-border-strong:  #262a3d;
+
+  /* ─ DaisyUI ─ */
+  --color-base-100:       #0e1018;
+  --color-base-200:       #141720;
+  --color-base-300:       #1c1f2e;
+  --color-base-content:   #f0f2f8;
+  --color-primary:        #D90429;
+  --color-primary-content: #ffffff;
+  --color-secondary:      #EF233C;
+  --color-secondary-content: #ffffff;
+  --rounded-btn:          0.5rem;
+  --rounded-box:          1rem;
 }
 
-/* ─── Base ─── */
-html {
-  scroll-behavior: smooth;
+/* ─────────────────────────────────────────────
+   Fonts
+──────────────────────────────────────────────*/
+@theme {
+  /* Latin body + UI */
+  --font-inter: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* Thai body + UI — IBM Plex Sans Thai falls back to Inter for Latin */
+  --font-thai:  'IBM Plex Sans Thai', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans:  var(--font-thai);
 }
+
+/* ─────────────────────────────────────────────
+   Base
+──────────────────────────────────────────────*/
+html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-inter);
-  background-color: var(--color-dark-bg);
+  background-color: var(--color-surface);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
 }
 
-/* ─── Scrollbar ─── */
-::-webkit-scrollbar        { width: 6px; height: 6px; }
+/* Thai locale — apply IBM Plex Sans Thai for all Thai text nodes */
+:lang(th),
+:lang(th) * {
+  font-family: var(--font-thai);
+  letter-spacing: 0.01em;
+  line-height: 1.8;
+}
+
+/* ─────────────────────────────────────────────
+   Scrollbar
+──────────────────────────────────────────────*/
+::-webkit-scrollbar        { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: #d6d3d1; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #78716c; }
+::-webkit-scrollbar-thumb  { background: var(--color-border-strong); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-ink-subtle); }
 
-/* ─── Custom Components ─── */
-/* Removed old tropical styles */
+/* ─────────────────────────────────────────────
+   Utilities
+──────────────────────────────────────────────*/
 
-/* ─── Animations ─── */
-@keyframes gradientMesh {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.bg-animated-gradient {
-  background: linear-gradient(-45deg, #ffedd5, #ccfbf1, #fed7aa, #f0fdfa);
-  background-size: 400% 400%;
-  animation: gradientMesh 15s ease infinite;
+/* Gradient text */
+.text-gradient-red {
+  background: linear-gradient(135deg, #D90429 0%, #ff4d6d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* ─── Debug helpers ─── */
-body.debug-outline * {
-  outline: 1px solid rgba(255, 0, 0, 0.3) !important;
+/* Section label (e.g. "Process", "Destinations") */
+.section-label {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-primary-red);
+  margin-bottom: 1rem;
 }
 
+/* Card — standard dark surface */
+.card-dark {
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.card-dark:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Red glow variants */
+.glow-red    { box-shadow: 0 0 60px rgba(217, 4, 41, 0.18), 0 0 120px rgba(217, 4, 41, 0.06); }
+.glow-red-sm { box-shadow: 0 4px 24px rgba(217, 4, 41, 0.22); }
+
+/* Form input */
+.input-dark {
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-ink);
+  border-radius: 0.625rem;
+  padding: 0.7rem 0.9rem;
+  width: 100%;
+  outline: none;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input-dark:focus {
+  border-color: var(--color-primary-red);
+  box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.1);
+}
+.input-dark::placeholder { color: var(--color-ink-subtle); }
+.input-dark option {
+  background: var(--color-surface-3);
+  color: var(--color-ink);
+}
+
+/* Shimmer animated line */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.shimmer-line {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(217, 4, 41, 0.5),
+    rgba(239, 35, 60, 0.7),
+    rgba(217, 4, 41, 0.5),
+    transparent
+  );
+  background-size: 200% auto;
+  animation: shimmer 3.5s linear infinite;
+}
+
+/* Divider line */
+.divider-line {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────────
+   Dot grid background helper
+──────────────────────────────────────────────*/
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ─────────────────────────────────────────────
+   Accessibility
+──────────────────────────────────────────────*/
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

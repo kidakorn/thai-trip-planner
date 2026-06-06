@@ -4,95 +4,94 @@ import { supabase } from "@/src/lib/supabase";
 import { Place, Category } from "@/src/lib/types";
 import PlacesGrid from "@/src/components/PlacesGrid";
 import PlacesFilter from "@/src/components/PlacesFilter";
-import AnimatedPlacesHero from "@/src/components/AnimatedPlacesHero";
 import { SlidersHorizontal } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "All Places — Thai Trip Planner",
-  description:
-    "Discover restaurants, hotels, activities and attractions across all provinces of Thailand.",
-};
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  food: "Food",
-  drink: "Drinks",
-  hotel: "Hotel",
-  activity: "Activity",
-  attraction: "Attraction",
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  return {
+    title: locale === "en" ? "All Places — Thai Trip Planner" : "สถานที่ทั้งหมด — Thai Trip Planner",
+    description: locale === "en"
+      ? "Discover restaurants, hotels, activities and attractions across all provinces of Thailand."
+      : "ค้นพบร้านอาหาร โรงแรม กิจกรรม และสถานที่ท่องเที่ยวในทุกจังหวัดของประเทศไทย",
+  };
+}
 
 interface PlacesPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  params: Promise<{ locale: string }>;
 }
 
-export default async function PlacesPage({
-  searchParams,
-}: PlacesPageProps) {
+export default async function PlacesPage({ searchParams, params }: PlacesPageProps) {
   const resolvedParams = await searchParams;
-  const filterCategory = (resolvedParams.category as string) || "all";
-  const filterProvince = (resolvedParams.province as string) || "all";
+  const { locale } = await params;
 
-  // Fetch from Supabase
+  const filterCategory = (resolvedParams.category as string) || "all";
+  const filterProvince  = (resolvedParams.province  as string) || "all";
+
   let query = supabase
     .from("places")
     .select("*")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
-  if (filterCategory && filterCategory !== "all") {
-    query = query.eq("category", filterCategory);
-  }
-
-  if (filterProvince && filterProvince !== "all") {
-    query = query.eq("province", filterProvince);
-  }
+  if (filterCategory !== "all") query = query.eq("category", filterCategory);
+  if (filterProvince  !== "all") query = query.eq("province",  filterProvince);
 
   const { data: places, error } = await query;
   const validPlaces = (places as Place[]) || [];
 
   return (
-    <div className="bg-surface text-ink min-h-screen font-inter">
-      {/* ── HERO SECTION ── */}
-      <section className="relative h-[50vh] min-h-[400px] w-full flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/light/phuket_light_1779892386681.png"
-            alt="Thailand Places"
-            fill
-            className="object-cover scale-105"
-            priority
-            quality={90}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-surface/80 via-surface/90 to-surface" />
-          <div className="absolute inset-0 bg-primary-red/5 mix-blend-multiply" />
+    <div className="bg-surface min-h-screen text-ink font-inter">
+
+      {/* ── Hero ── */}
+      <div className="relative h-56 overflow-hidden">
+        <Image
+          src="/images/light/phuket_light_1779892386681.png"
+          alt="" fill
+          className="object-cover brightness-40 scale-105"
+          priority quality={80}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-surface/30 via-surface/70 to-surface" />
+        <div className="absolute inset-0 dot-grid opacity-60" />
+
+        <div className="absolute inset-0 flex flex-col items-center justify-center pt-12 px-6">
+          <p className="section-label">Discover Thailand</p>
+          <h1 className="font-black text-[clamp(1.8rem,4vw,3rem)] text-ink text-center leading-tight">
+            Explore{" "}
+            <span className="text-gradient-red">Places</span>
+          </h1>
+          <p className="text-ink-muted text-sm text-center max-w-md mt-2">
+            {locale === "en"
+              ? "Handpicked restaurants, hotels, activities and attractions."
+              : "ร้านอาหาร โรงแรม กิจกรรม และสถานที่ท่องเที่ยวที่คัดสรร"}
+          </p>
         </div>
+      </div>
 
-        {/* Animated Hero Content */}
-        <AnimatedPlacesHero />
-      </section>
-
-      {/* ── CONTENT SECTION ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 -mt-10 relative z-20">
+      {/* ── Content ── */}
+      <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* Sidebar / Filters */}
-          <div className="w-full lg:w-64 shrink-0 lg:sticky lg:top-24 bg-white border border-red-100 rounded-3xl p-6 shadow-xl shadow-red-900/5">
-            <div className="flex items-center gap-2 mb-6 text-ink">
-              <SlidersHorizontal size={20} className="text-primary-red" />
-              <h2 className="font-inter font-bold text-xl">Filters</h2>
+
+          {/* Sidebar */}
+          <aside className="w-full lg:w-52 shrink-0 lg:sticky lg:top-24 bg-surface-3 border border-border rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-5">
+              <SlidersHorizontal size={15} className="text-primary-red" />
+              <h2 className="font-bold text-sm text-ink">
+                {locale === "en" ? "Filters" : "ตัวกรอง"}
+              </h2>
             </div>
-            
-            <PlacesFilter 
-              currentCategory={filterCategory} 
-              currentProvince={filterProvince} 
-            />
-          </div>
+            <PlacesFilter currentCategory={filterCategory} currentProvince={filterProvince} />
+          </aside>
 
           {/* Grid */}
-          <div className="flex-1 w-full min-w-0">
+          <div className="flex-1 min-w-0">
             {error ? (
-              <div className="p-8 text-center bg-white border border-red-100 shadow-md rounded-3xl">
-                <p className="text-secondary-red font-bold">Error loading places. Please try again later.</p>
+              <div className="p-6 text-center bg-surface-3 border border-border rounded-xl">
+                <p className="text-sm text-primary-red font-semibold">
+                  {locale === "en"
+                    ? "Error loading places. Please try again."
+                    : "เกิดข้อผิดพลาด กรุณาลองใหม่"}
+                </p>
               </div>
             ) : (
               <PlacesGrid places={validPlaces} />

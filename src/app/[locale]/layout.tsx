@@ -9,7 +9,7 @@ export default async function LocaleLayout({
   params
 }: {
   children: React.ReactNode;
-  params: Promise<{locale: string}>;
+  params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   const messages = await getMessages();
@@ -17,8 +17,14 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>
       <LanguageProvider>
-        <Navbar />
-        <main>{children}</main>
+        {/*
+          Set lang attribute on the wrapper so :lang(th) CSS selector
+          activates IBM Plex Sans Thai automatically for Thai content.
+        */}
+        <div lang={locale}>
+          <Navbar />
+          <main>{children}</main>
+        </div>
       </LanguageProvider>
       <DebugPanel />
     </NextIntlClientProvider>
